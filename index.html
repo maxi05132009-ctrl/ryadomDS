@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Рядом — соседи помогают друг другу</title>
+<style>
+  :root{
+    --primary:#2f7d5d;
+    --primary-dark:#25624a;
+    --primary-light:#e3f1ea;
+    --accent:#b85618;
+    --accent-dark:#9a4610;
+    --accent-light:#fbeade;
+    --ink:#231f1a;
+    --muted:#5f574c;
+    --line:#e2dbcd;
+    --card:#ffffff;
+    --bg:#f7f4ed;
+    --shadow:0 4px 16px rgba(35,31,26,.07);
+  }
+  *{box-sizing:border-box;}
+  html{font-size:18px;}
+  body{
+    margin:0;
+    font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  button{font-family:inherit;}
+  a{color:var(--primary-dark);}
+  :focus-visible{outline:4px solid #f0a35e;outline-offset:2px;border-radius:10px;}
+  .wrap{max-width:1140px;margin:0 auto;padding:0 20px;}
+  .skip-link{position:absolute;left:-9999px;top:0;background:var(--primary);color:#fff;padding:12px 22px;z-index:200;border-radius:0 0 12px 0;font-weight:700;}
+  .skip-link:focus{left:0;}
+
+  /* ---------- Шапка и меню ---------- */
+  .site-header{background:#fff;border-bottom:2px solid var(--line);position:sticky;top:0;z-index:50;box-shadow:0 2px 10px rgba(35,31,26,.05);}
+  .header-inner{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:14px 20px;max-width:1140px;margin:0 auto;}
+  .logo{display:flex;align-items:center;gap:12px;font-weight:800;font-size:1.45rem;letter-spacing:-.02em;line-height:1.1;}
+  .logo-mark{width:50px;height:50px;border-radius:15px;background:var(--primary);color:#fff;display:grid;place-items:center;font-size:1.5rem;flex:none;}
+  .logo small{display:block;font-size:.72rem;font-weight:600;color:var(--muted);letter-spacing:.02em;}
+  .main-nav{display:flex;gap:10px;flex-wrap:wrap;margin-left:auto;}
+  .nav-btn{
+    font-size:1.02rem;font-weight:700;padding:12px 18px;border-radius:14px;
+    border:2px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;
+    min-height:54px;transition:background .15s,border-color .15s;
+  }
+  .nav-btn:hover{background:#f2efe7;border-color:#cfc6b4;}
+  .nav-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;}
+
+  /* ---------- Страницы ---------- */
+  .page{display:none;padding:34px 0 70px;}
+  .page.active{display:block;animation:fade .2s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  h1{font-size:2.25rem;line-height:1.2;margin:0 0 16px;letter-spacing:-.02em;}
+  h2{font-size:1.85rem;line-height:1.25;margin:44px 0 18px;letter-spacing:-.01em;}
+  .lead{font-size:1.22rem;color:var(--muted);margin:0 0 28px;max-width:52ch;}
+
+  /* ---------- Кнопки ---------- */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:10px;
+    font-size:1.1rem;font-weight:700;padding:17px 28px;border-radius:16px;
+    border:2px solid transparent;cursor:pointer;text-decoration:none;min-height:62px;
+    transition:background .15s,transform .05s;
+  }
+  .btn:active{transform:translateY(1px);}
+  .btn-primary{background:var(--primary);color:#fff;}
+  .btn-primary:hover{background:var(--primary-dark);}
+  .btn-accent{background:var(--accent);color:#fff;}
+  .btn-accent:hover{background:var(--accent-dark);}
+  .btn-ghost{background:#fff;color:var(--primary-dark);border-color:var(--primary);}
+  .btn-ghost:hover{background:var(--primary-light);}
+  .btn-lg{font-size:1.25rem;padding:22px 36px;min-height:74px;}
+  .btn-small{font-size:.95rem;padding:10px 16px;min-height:46px;border-radius:12px;}
+  .btn-danger{background:#fff;color:#a3241a;border:2px solid #e6b8b2;}
+  .btn-danger:hover{background:#fbe9e7;}
+
+  /* ---------- Главная ---------- */
+  .hero{background:#fff;border-radius:26px;padding:40px;box-shadow:var(--shadow);border:2px solid var(--line);}
+  .hero-actions{display:flex;gap:16px;flex-wrap:wrap;}
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;}
+  .step{background:#fff;border:2px solid var(--line);border-radius:20px;padding:26px;}
+  .step-num{width:46px;height:46px;border-radius:50%;background:var(--primary-light);color:var(--primary-dark);font-weight:800;display:grid;place-items:center;font-size:1.2rem;margin-bottom:12px;}
+  .step h3{margin:0 0 8px;font-size:1.2rem;}
+  .step p{margin:0;color:var(--muted);}
+  .callout{background:var(--primary-light);border:2px solid #c9e3d7;border-radius:24px;padding:30px;margin-top:36px;display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap;}
+  .callout p{margin:0;font-size:1.15rem;font-weight:600;max-width:44ch;}
+
+  /* ---------- Фильтры ---------- */
+  .filters{display:flex;flex-direction:column;gap:14px;margin:8px 0 26px;}
+  .filter-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .filter-label{font-weight:800;color:var(--muted);min-width:76px;font-size:.98rem;}
+  .chip{font-size:1rem;font-weight:700;padding:12px 20px;border-radius:999px;border:2px solid var(--line);background:#fff;cursor:pointer;min-height:52px;}
+  .chip:hover{border-color:#cfc6b4;background:#f6f3ec;}
+  .chip.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .search{position:relative;max-width:520px;margin-top:6px;}
+  .search input{width:100%;}
+
+  /* ---------- Карточки ---------- */
+  .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:22px;}
+  .card{
+    background:var(--card);border-radius:20px;border:2px solid var(--line);
+    border-top-width:8px;box-shadow:var(--shadow);padding:24px;
+    display:flex;flex-direction:column;gap:12px;
+  }
+  .card.offer{border-top-color:var(--primary);}
+  .card.request{border-top-color:var(--accent);}
+  .badge{display:inline-block;align-self:flex-start;font-size:.88rem;font-weight:800;padding:6px 14px;border-radius:999px;}
+  .badge.offer{background:var(--primary-light);color:var(--primary-dark);}
+  .badge.request{background:var(--accent-light);color:var(--accent-dark);}
+  .card h3{margin:0;font-size:1.24rem;line-height:1.3;}
+  .card p{margin:0;color:var(--muted);font-size:1rem;}
+  .card-meta{font-size:.95rem;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .tag{background:#f1eee5;border-radius:999px;padding:4px 12px;font-weight:700;color:#4a443b;font-size:.9rem;}
+  .contact{background:#f6f3ec;border-radius:14px;padding:14px 16px;font-weight:800;word-break:break-word;font-size:1.05rem;}
+  .empty{background:#fff;border:2px dashed var(--line);border-radius:20px;padding:32px;text-align:center;color:var(--muted);font-size:1.1rem;}
+
+  /* ---------- Формы ---------- */
+  .form-card{background:#fff;border:2px solid var(--line);border-radius:24px;padding:34px;box-shadow:var(--shadow);max-width:780px;}
+  .field{margin-bottom:24px;}
+  .field label{display:block;font-weight:800;font-size:1.1rem;margin-bottom:8px;}
+  .hint{font-size:.95rem;color:var(--muted);font-weight:400;margin:0 0 8px;}
+  input[type=text],input[type=password],textarea,select{
+    width:100%;font-size:1.1rem;font-family:inherit;padding:15px 16px;border-radius:14px;
+    border:2px solid #d8d1c2;background:#fdfcf9;color:var(--ink);min-height:58px;
+  }
+  textarea{min-height:130px;resize:vertical;}
+  input:focus,textarea:focus,select:focus{border-color:var(--primary);outline:none;box-shadow:0 0 0 4px var(--primary-light);}
+  .msg{margin:18px 0 0;font-weight:700;padding:16px 18px;border-radius:14px;display:none;}
+  .msg.success{display:block;background:var(--primary-light);color:var(--primary-dark);}
+  .msg.error{display:block;background:#fbe9e7;color:#a3241a;}
+
+  /* ---------- Квиз ---------- */
+  .quiz{background:#fff;border:2px solid var(--line);border-radius:24px;padding:34px;max-width:840px;box-shadow:var(--shadow);}
+  .quiz-progress{height:14px;background:#eee9de;border-radius:999px;overflow:hidden;margin-bottom:22px;}
+  .quiz-progress span{display:block;height:100%;background:var(--primary);transition:width .25s ease;}
+  .quiz-step{margin:0 0 6px;color:var(--muted);font-weight:700;font-size:.98rem;}
+  .quiz-q{font-size:1.5rem;font-weight:800;margin:0 0 22px;line-height:1.3;}
+  .quiz-options{display:flex;flex-direction:column;gap:12px;}
+  .quiz-opt{width:100%;text-align:left;font-size:1.08rem;font-weight:700;padding:18px 22px;border-radius:16px;border:2px solid #d8d1c2;background:#fdfcf9;cursor:pointer;min-height:64px;transition:background .15s,border-color .15s;}
+  .quiz-opt:hover{border-color:var(--primary);background:var(--primary-light);}
+  .quiz-result h2{margin-top:0;}
+
+  /* ---------- Админ ---------- */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:28px;}
+  .stat{background:#fff;border:2px solid var(--line);border-radius:18px;padding:20px;text-align:center;}
+  .stat b{display:block;font-size:2rem;color:var(--primary-dark);line-height:1.1;}
+  .stat span{color:var(--muted);font-weight:700;font-size:.95rem;}
+  .admin-list{display:flex;flex-direction:column;gap:14px;margin-top:18px;}
+  .admin-row{display:flex;gap:16px;align-items:center;justify-content:space-between;background:#fff;border:2px solid var(--line);border-radius:16px;padding:18px;flex-wrap:wrap;}
+  .admin-row .who{font-weight:800;font-size:1.08rem;}
+  .admin-toolbar{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px;}
+
+  /* ---------- Подвал ---------- */
+  .site-footer{border-top:2px solid var(--line);background:#fff;padding:28px 0;color:var(--muted);font-size:.98rem;}
+  .site-footer .wrap{display:flex;gap:16px;justify-content:space-between;flex-wrap:wrap;}
+
+  @media (max-width:900px){
+    .main-nav{width:100%;margin-left:0;}
+    .nav-btn{flex:1 1 auto;}
+  }
+  @media (max-width:640px){
+    html{font-size:17px;}
+    h1{font-size:1.75rem;}
+    h2{font-size:1.5rem;}
+    .hero{padding:26px 22px;}
+    .form-card,.quiz{padding:24px 20px;}
+    .wrap{padding:0 16px;}
+    .btn-lg{width:100%;}
+    .filter-label{min-width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Перейти к содержанию</a>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-mark" aria-hidden="true">🤝</span>
+      <span>Рядом<small>соседи помогают друг другу</small></span>
+    </div>
+    <nav class="main-nav" aria-label="Главное меню">
+      <button class="nav-btn active" data-page="home" aria-current="page">Главная</button>
+      <button class="nav-btn" data-page="board">Помощь рядом</button>
+      <button class="nav-btn" data-page="ask">Попросить</button>
+      <button class="nav-btn" data-page="offer">Предложить</button>
+      <button class="nav-btn" data-page="quiz">Квиз</button>
+      <button class="nav-btn" data-page="admin">Админ</button>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="wrap">
+
+  <!-- ================= ГЛАВНАЯ ================= -->
+  <section id="page-home" class="page active" aria-labelledby="home-title">
+    <div class="hero">
+      <h1 id="home-title">Рядом — соседи, которые помогают друг другу</h1>
+      <p class="lead">Кто-то научит печь пироги, кто-то поможет разобраться с телефоном.
+        Просто, бесплатно и по-соседски — в вашем доме и во дворе.</p>
+      <div class="hero-actions">
+        <button class="btn btn-accent btn-lg" data-go="ask">Мне нужна помощь</button>
+        <button class="btn btn-primary btn-lg" data-go="offer">Я хочу помочь</button>
+      </div>
+    </div>
+
+    <h2>Как это работает</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num" aria-hidden="true">1</div>
+        <h3>Посмотрите объявления</h3>
+        <p>На странице «Помощь рядом» собраны предложения и просьбы ваших соседей.</p>
+      </div>
+      <div class="step">
+        <div class="step-num" aria-hidden="true">2</div>
+        <h3>Напишите своё</h3>
+        <p>Нажмите «Попросить» или «Предложить» и заполните короткую форму из пяти полей.</p>
+      </div>
+      <div class="step">
+        <div class="step-num" aria-hidden="true">3</div>
+        <h3>Познакомьтесь</h3>
+        <p>Нажмите «Показать контакт» на карточке и договоритесь о встрече.</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <p>Не знаете, с чего начать? Пройдите короткий квиз из трёх вопросов — он подскажет, что вам подходит.</p>
+      <button class="btn btn-primary" data-go="quiz">Пройти квиз</button>
+    </div>
+  </section>
+
+  <!-- ================= ПОМОЩЬ РЯДОМ ================= -->
+  <section id="page-board" class="page" aria-labelledby="board-title">
+    <h1 id="board-title">Помощь рядом</h1>
+    <p class="lead">Выберите, что вам интересно. Чтобы увидеть контакт соседа, нажмите кнопку «Показать контакт».</p>
+
+    <div class="filters">
+      <div class="filter-row" role="group" aria-label="Тип объявления">
+        <span class="filter-label">Показать:</span>
+        <button class="chip active" data-type="all">Всё вместе</button>
+        <button class="chip" data-type="offer">Предлагают помощь</button>
+        <button class="chip" data-type="request">Просят о помощи</button>
+      </div>
+      <div class="filter-row" role="group" aria-label="Тема объявления">
+        <span class="filter-label">Тема:</span>
+        <button class="chip active" data-cat="all">Любая</button>
+        <button class="chip" data-cat="Умения и хобби">Умения и хобби</button>
+        <button class="chip" data-cat="Техника и интернет">Техника и интернет</button>
+        <button class="chip" data-cat="Быт и хозяйство">Быт и хозяйство</button>
+        <button class="chip" data-cat="Прогулки и общение">Прогулки и общение</button>
+        <button class="chip" data-cat="Другое">Другое</button>
+      </div>
+      <div class="search">
+        <label for="board-search" class="hint">Поиск по словам</label>
+        <input type="text" id="board-search" placeholder="Например: пироги, телефон, прогулка">
+      </div>
+    </div>
+
+    <p class="hint" id="cards-count" aria-live="polite"></p>
+    <div id="cards-list" class="cards-grid"></div>
+    <p id="cards-empty" class="empty" hidden>Пока ничего не нашлось. Попробуйте выбрать другую тему или стереть слово в поиске.</p>
+  </section>
+
+  <!-- ================= ПОПРОСИТЬ ================= -->
+  <section id="page-ask" class="page" aria-labelledby="ask-title">
+    <h1 id="ask-title">Попросить о помощи</h1>
+    <p class="lead">Расскажите, что нужно. Чем понятнее написано, тем быстрее найдётся сосед, который поможет.</p>
+
+    <form class="form-card" id="form-ask">
+      <div class="field">
+        <label for="ask-name">Как вас зовут</label>
+        <input type="text" id="ask-name" name="name" placeholder="Например, Мария Ивановна" required maxlength="60">
+      </div>
+      <div class="field">
+        <label for="ask-contact">Как с вами связаться</label>
+        <p class="hint">Телефон, домофон или другой удобный способ</p>
+        <input type="text" id="ask-contact" name="contact" placeholder="Например, +7 900 123-45-67" required maxlength="80">
+      </div>
+      <div class="field">
+        <label for="ask-category">Тема</label>
+        <select id="ask-category" name="category" required>
+          <option value="Умения и хобби">Умения и хобби</option>
+          <option value="Техника и интернет">Техника и интернет</option>
+          <option value="Быт и хозяйство">Быт и хозяйство</option>
+          <option value="Прогулки и общение">Прогулки и общение</option>
+          <option value="Другое">Другое</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="ask-title">Что нужно сделать</label>
+        <input type="text" id="ask-title" name="title" placeholder="Например: помочь настроить телефон" required maxlength="80">
+      </div>
+      <div class="field">
+        <label for="ask-desc">Подробности</label>
+        <p class="hint">Когда вам удобно и что именно нужно — пара предложений</p>
+        <textarea id="ask-desc" name="desc" required maxlength="400" placeholder="Например: телефон новый, не могу найти, где включается звук. Живу в 4 подъезде, дома бываю после обеда."></textarea>
+      </div>
+      <button class="btn btn-accent btn-lg" type="submit">Отправить просьбу</button>
+      <p class="msg" id="form-ask-msg" role="status"></p>
+    </form>
+  </section>
+
+  <!-- ================= ПРЕДЛОЖИТЬ ================= -->
+  <section id="page-offer" class="page" aria-labelledby="offer-title">
+    <h1 id="offer-title">Предложить помощь</h1>
+    <p class="lead">У каждого есть чему научить другого. Расскажите о своём умении — оно обязательно кому-то пригодится.</p>
+
+    <form class="form-card" id="form-offer">
+      <div class="field">
+        <label for="offer-name">Как вас зовут</label>
+        <input type="text" id="offer-name" name="name" placeholder="Например, Нина Петровна" required maxlength="60">
+      </div>
+      <div class="field">
+        <label for="offer-contact">Как с вами связаться</label>
+        <p class="hint">Телефон, домофон или другой удобный способ</p>
+        <input type="text" id="offer-contact" name="contact" placeholder="Например, +7 900 123-45-67" required maxlength="80">
+      </div>
+      <div class="field">
+        <label for="offer-category">Тема</label>
+        <select id="offer-category" name="category" required>
+          <option value="Умения и хобби">Умения и хобби</option>
+          <option value="Техника и интернет">Техника и интернет</option>
+          <option value="Быт и хозяйство">Быт и хозяйство</option>
+          <option value="Прогулки и общение">Прогулки и общение</option>
+          <option value="Другое">Другое</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="offer-title">Чему вы можете научить или чем помочь</label>
+        <input type="text" id="offer-title" name="title" placeholder="Например: научу вязать тёплые носки" required maxlength="80">
+      </div>
+      <div class="field">
+        <label for="offer-desc">Подробности</label>
+        <p class="hint">Что, когда и где — пара предложений</p>
+        <textarea id="offer-desc" name="desc" required maxlength="400" placeholder="Например: вяжу больше двадцати лет. Могу показать основы, спицы и пряжа найдутся. Удобно по субботам у меня дома."></textarea>
+      </div>
+      <button class="btn btn-primary btn-lg" type="submit">Отправить предложение</button>
+      <p class="msg" id="form-offer-msg" role="status"></p>
+    </form>
+  </section>
+
+  <!-- ================= КВИЗ ================= -->
+  <section id="page-quiz" class="page" aria-labelledby="quiz-title">
+    <h1 id="quiz-title">Короткий квиз</h1>
+    <p class="lead">Три простых вопроса — и мы подскажем, с чего вам начать.</p>
+    <div class="quiz" id="quiz-box"></div>
+  </section>
+
+  <!-- ================= АДМИН ================= -->
+  <section id="page-admin" class="page" aria-labelledby="admin-title">
+    <h1 id="admin-title">Панель администратора</h1>
+
+    <div class="form-card" id="admin-login">
+      <p class="lead">Введите пароль, чтобы управлять объявлениями.</p>
+      <form id="form-login">
+        <div class="field">
+          <label for="admin-pass">Пароль</label>
+          <input type="password" id="admin-pass" autocomplete="current-password" required>
+        </div>
+        <button class="btn btn-primary" type="submit">Войти</button>
+        <p class="msg" id="login-msg" role="status"></p>
+        <p class="hint" style="margin-top:16px;">Демо-пароль: <b>admin</b></p>
+      </form>
+    </div>
+
+    <div id="admin-panel" hidden>
+      <div class="stats">
+        <div class="stat"><b id="stat-total">0</b><span>всего объявлений</span></div>
+        <div class="stat"><b id="stat-offers">0</b><span>предложений помощи</span></div>
+        <div class="stat"><b id="stat-requests">0</b><span>просьб о помощи</span></div>
+      </div>
+
+      <h2>Добавить объявление вручную</h2>
+      <form class="form-card" id="form-admin-add">
+        <div class="field">
+          <label for="adm-type">Тип объявления</label>
+          <select id="adm-type" name="type" required>
+            <option value="offer">Предложение помощи</option>
+            <option value="request">Просьба о помощи</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="adm-title">Заголовок</label>
+          <input type="text" id="adm-title" name="title" required maxlength="80">
+        </div>
+        <div class="field">
+          <label for="adm-name">Имя соседа</label>
+          <input type="text" id="adm-name" name="name" required maxlength="60">
+        </div>
+        <div class="field">
+          <label for="adm-contact">Контакт</label>
+          <input type="text" id="adm-contact" name="contact" required maxlength="80">
+        </div>
+        <div class="field">
+          <label for="adm-category">Тема</label>
+          <select id="adm-category" name="category" required>
+            <option value="Умения и хобби">Умения и хобби</option>
+            <option value="Техника и интернет">Техника и интернет</option>
+            <option value="Быт и хозяйство">Быт и хозяйство</option>
+            <option value="Прогулки и общение">Прогулки и общение</option>
+            <option value="Другое">Другое</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="adm-desc">Описание</label>
+          <textarea id="adm-desc" name="desc" required maxlength="400"></textarea>
+        </div>
+        <button class="btn btn-primary" type="submit">Добавить</button>
+        <p class="msg" id="admin-add-msg" role="status"></p>
+      </form>
+
+      <h2>Все объявления</h2>
+      <div class="admin-list" id="admin-list"></div>
+
+      <div class="admin-toolbar">
+        <button class="btn btn-ghost" id="admin-reset" type="button">Вернуть примеры объявлений</button>
+        <button class="btn btn-danger" id="admin-logout" type="button">Выйти</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <span>«Рядом» — добрососедский проект. Помогаем друг другу без денег и формальностей.</span>
+    <span>Сделано с заботой о соседях</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ====================== ДАННЫЕ ====================== */
+  const STORAGE_KEY = 'ryadom_cards_v1';
+  const ADMIN_PASSWORD = 'admin';
+
+  const DEFAULT_CARDS = [
+    {
+      id: 'c1', type: 'offer', category: 'Умения и хобби',
+      title: 'Научу печь пироги с капустой и варить варенье',
+      name: 'Нина Петровна', contact: '+7 900 111-22-33',
+      desc: 'Пеку всю жизнь. В субботу днём могу показать, как замешивать тесто и печь пироги. Приходите с мукой — остальное найдётся. Живу в 3 подъезде.'
+    },
+    {
+      id: 'c2', type: 'request', category: 'Техника и интернет',
+      title: 'Помогите разобраться со смартфоном',
+      name: 'Валентин Сергеевич', contact: '+7 900 222-33-44',
+      desc: 'Купили новый телефон, а я не могу разобраться: не понимаю, как звонить и где фотографии. Буду очень благодарен за терпеливый показ.'
+    },
+    {
+      id: 'c3', type: 'offer', category: 'Техника и интернет',
+      title: 'Помогу с компьютером, телефоном и интернетом',
+      name: 'Артём', contact: '+7 900 333-44-55',
+      desc: 'Настрою телефон, планшет или ноутбук, подключу интернет, объясню, как писать сообщения и звонить по видеосвязи. Живу в 1 подъезде, вечера будней.'
+    },
+    {
+      id: 'c4', type: 'offer', category: 'Умения и хобби',
+      title: 'Свяжу тёплые носки и научу вязать',
+      name: 'Галина Ивановна', contact: '+7 900 444-55-66',
+      desc: 'Вяжу больше тридцати лет. Могу показать основы, спицы и пряжа у меня есть. Удобно по вторникам и четвергам после обеда.'
+    },
+    {
+      id: 'c5', type: 'request', category: 'Быт и хозяйство',
+      title: 'Помогите донести продукты из магазина',
+      name: 'Мария Ивановна', contact: '+7 900 555-66-77',
+      desc: 'Мне 79 лет, тяжести носить трудно. Нужна помощь раз в неделю, магазин у дома. Буду очень признательна, живу на 4 этаже без лифта.'
+    },
+    {
+      id: 'c6', type: 'offer', category: 'Прогулки и общение',
+      title: 'Погуляю с собакой и составлю компанию на прогулке',
+      name: 'Сергей', contact: '+7 900 666-77-88',
+      desc: 'Гуляю во дворе каждый вечер около семи. Могу выгулять собаку, помочь донести сумки или просто составить компанию для разговора.'
+    }
+  ];
+
+  /* ====================== СОСТОЯНИЕ ====================== */
+  let cards = loadCards();
+  let filterType = 'all';
+  let filterCat = 'all';
+  let search = '';
+  let isAdmin = false;
+  const revealed = new Set();
+
+  function loadCards() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return DEFAULT_CARDS.slice();
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : DEFAULT_CARDS.slice();
+    } catch (e) {
+      return DEFAULT_CARDS.slice();
+    }
+  }
+  function saveCards() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(cards)); } catch (e) {}
+  }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (m) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m];
+    });
+  }
+
+  /* ====================== НАВИГАЦИЯ ====================== */
+  function goTo(page) {
+    document.querySelectorAll('.page').forEach(function (p) {
+      p.classList.toggle('active', p.id === 'page-' + page);
+    });
+    document.querySelectorAll('.nav-btn').forEach(function (b) {
+      const on = b.dataset.page === page;
+      b.classList.toggle('active', on);
+      if (on) { b.setAttribute('aria-current', 'page'); }
+      else { b.removeAttribute('aria-current'); }
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const heading = document.querySelector('#page-' + page + ' h1');
+    if (heading) {
+      heading.setAttribute('tabindex', '-1');
+      heading.focus({ preventScroll: true });
+    }
+  }
+
+  document.querySelectorAll('.nav-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () { goTo(btn.dataset.page); });
+  });
+
+  document.addEventListener('click', function (e) {
+    const go = e.target.closest('[data-go]');
+    if (go) { goTo(go.dataset.go); }
+  });
+
+  /* ====================== КАРТОЧКИ ====================== */
+  function cardHTML(c) {
+    const isOffer = c.type === 'offer';
+    const contactBlock = revealed.has(c.id)
+      ? '<div class="contact">Контакт: ' + esc(c.contact) + '</div>'
+      : '<button class="btn btn-ghost btn-small" type="button" data-reveal="' + esc(c.id) + '">Показать контакт</button>';
+
+    return '<article class="card ' + (isOffer ? 'offer' : 'request') + '">' +
+      '<span class="badge ' + (isOffer ? 'offer' : 'request') + '">' +
+        (isOffer ? 'Предлагаю помощь' : 'Нужна помощь') +
+      '</span>' +
+      '<h3>' + esc(c.title) + '</h3>' +
+      '<p>' + esc(c.desc) + '</p>' +
+      '<div class="card-meta"><span class="tag">' + esc(c.category) + '</span><span>· ' + esc(c.name) + '</span></div>' +
+      contactBlock +
+      '</article>';
+  }
+
+  function renderCards() {
+    const listEl = document.getElementById('cards-list');
+    const emptyEl = document.getElementById('cards-empty');
+    const countEl = document.getElementById('cards-count');
+    const q = search.trim().toLowerCase();
+
+    const items = cards.filter(function (c) {
+      if (filterType !== 'all' && c.type !== filterType) return false;
+      if (filterCat !== 'all' && c.category !== filterCat) return false;
+      if (q) {
+        const hay = [c.title, c.desc, c.name, c.category].join(' ').toLowerCase();
+        if (hay.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+
+    listEl.innerHTML = items.map(cardHTML).join('');
+    emptyEl.hidden = items.length > 0;
+    countEl.textContent = items.length
+      ? 'Найдено объявлений: ' + items.length
+      : '';
+  }
+
+  document.getElementById('cards-list').addEventListener('click', function (e) {
+    const btn = e.target.closest('[data-reveal]');
+    if (!btn) return;
+    revealed.add(btn.dataset.reveal);
+    renderCards();
+  });
+
+  document.querySelectorAll('[data-type]').forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      filterType = chip.dataset.type;
+      document.querySelectorAll('[data-type]').forEach(function (x) {
+        x.classList.toggle('active', x === chip);
+      });
+      renderCards();
+    });
+  });
+
+  document.querySelectorAll('[data-cat]').forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      filterCat = chip.dataset.cat;
+      document.querySelectorAll('[data-cat]').forEach(function (x) {
+        x.classList.toggle('active', x === chip);
+      });
+      renderCards();
+    });
+  });
+
+  document.getElementById('board-search').addEventListener('input', function (e) {
+    search = e.target.value;
+    renderCards();
+  });
+
+  /* ====================== ФОРМЫ СОСЕДЕЙ ====================== */
+  function bindPublicForm(formId, type) {
+    const form = document.getElementById(formId);
+    const msg = document.getElementById(formId + '-msg');
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const card = {
+        id: 'c' + Date.now() + Math.random().toString(16).slice(2, 6),
+        type: type,
+        name: String(fd.get('name') || '').trim(),
+        contact: String(fd.get('contact') || '').trim(),
+        category: String(fd.get('category') || 'Другое'),
+        title: String(fd.get('title') || '').trim(),
+        desc: String(fd.get('desc') || '').trim()
+      };
+      if (!card.name || !card.contact || !card.title || !card.desc) return;
+
+      cards.unshift(card);
+      saveCards();
+      renderCards();
+      renderAdmin();
+
+      form.reset();
+      msg.className = 'msg success';
+      msg.innerHTML = 'Готово! Объявление добавлено. Спасибо, что вы рядом. ' +
+        '<button class="btn btn-ghost btn-small" type="button" data-go="board" style="margin-left:8px;">Смотреть все объявления</button>';
+      msg.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    });
+  }
+
+  bindPublicForm('form-ask', 'request');
+  bindPublicForm('form-offer', 'offer');
+
+  /* ====================== КВИЗ ====================== */
+  const QUIZ = [
+    {
+      q: 'Что вам сейчас ближе?',
+      opts: [
+        { t: 'Хочу помочь другим людям', v: 'offer' },
+        { t: 'Мне нужна помощь', v: 'request' },
+        { t: 'Хочу научиться чему-то новому', v: 'learn' },
+        { t: 'Хочу просто пообщаться с соседями', v: 'chat' }
+      ]
+    },
+    {
+      q: 'Какая тема вам интересна?',
+      opts: [
+        { t: 'Готовка, рукоделие, разные умения', v: 'Умения и хобби' },
+        { t: 'Телефон, компьютер, интернет', v: 'Техника и интернет' },
+        { t: 'Дом, хозяйство, мелкий ремонт', v: 'Быт и хозяйство' },
+        { t: 'Прогулки и разговоры', v: 'Прогулки и общение' }
+      ]
+    },
+    {
+      q: 'Сколько времени вы можете уделить?',
+      opts: [
+        { t: 'Полчаса-час в неделю', v: 'немного' },
+        { t: 'Пару часов в неделю', v: 'достаточно' },
+        { t: 'Пока не знаю', v: 'не знаю' }
+      ]
+    }
+  ];
+
+  let quizIndex = 0;
+  let quizAnswers = [];
+  const quizBox = document.getElementById('quiz-box');
+
+  function renderQuiz() {
+    if (quizIndex >= QUIZ.length) { showQuizResult(); return; }
+    const q = QUIZ[quizIndex];
+    const progress = Math.round((quizIndex / QUIZ.length) * 100);
+
+    quizBox.innerHTML =
+      '<div class="quiz-progress"><span style="width:' + progress + '%"></span></div>' +
+      '<p class="quiz-step">Вопрос ' + (quizIndex + 1) + ' из ' + QUIZ.length + '</p>' +
+      '<h2 class="quiz-q">' + esc(q.q) + '</h2>' +
+      '<div class="quiz-options">' +
+        q.opts.map(function (o, i) {
+          return '<button class="quiz-opt" type="button" data-opt="' + i + '">' + esc(o.t) + '</button>';
+        }).join('') +
+      '</div>';
+  }
+
+  function showQuizResult() {
+    const first = quizAnswers[0];
+    const cat = quizAnswers[1] || 'Умения и хобби';
+    let title, text, btnText, page;
+
+    if (first === 'offer') {
+      title = 'Вам стоит предложить помощь';
+      text = 'У вас есть чем поделиться. Расскажите соседям о своём умении — тема «' + cat + '» сейчас очень нужна людям рядом.';
+      btnText = 'Предложить помощь'; page = 'offer';
+    } else if (first === 'request') {
+      title = 'Не стесняйтесь попросить';
+      text = 'Рядом наверняка есть человек, готовый помочь. Опишите, что нужно, в теме «' + cat + '» — и вас обязательно найдут.';
+      btnText = 'Попросить о помощи'; page = 'ask';
+    } else if (first === 'learn') {
+      title = 'Посмотрите, чему учат соседи';
+      text = 'В теме «' + cat + '» уже есть объявления от соседей, которые готовы научить. Загляните — вдруг рядом живёт мастер.';
+      btnText = 'Смотреть предложения'; page = 'board';
+    } else {
+      title = 'Отличный повод познакомиться';
+      text = 'Общение — тоже помощь. Посмотрите, кто из соседей предлагает прогулки и разговоры, и напишите им.';
+      btnText = 'Смотреть объявления'; page = 'board';
+    }
+
+    quizBox.innerHTML =
+      '<div class="quiz-result">' +
+        '<div class="quiz-progress"><span style="width:100%"></span></div>' +
+        '<h2>' + esc(title) + '</h2>' +
+        '<p class="lead">' + esc(text) + '</p>' +
+        '<div class="hero-actions">' +
+          '<button class="btn btn-primary btn-lg" type="button" data-go="' + page + '">' + esc(btnText) + '</button>' +
+          '<button class="btn btn-ghost" type="button" id="quiz-restart">Пройти заново</button>' +
+        '</div>' +
+      '</div>';
+  }
+
+  quizBox.addEventListener('click', function (e) {
+    const opt = e.target.closest('[data-opt]');
+    if (opt) {
+      quizAnswers[quizIndex] = QUIZ[quizIndex].opts[Number(opt.dataset.opt)].v;
+      quizIndex++;
+      renderQuiz();
+      return;
+    }
+    if (e.target.closest('#quiz-restart')) {
+      quizIndex = 0;
+      quizAnswers = [];
+      renderQuiz();
+    }
+  });
+
+  renderQuiz();
+
+  /* ====================== АДМИН ====================== */
+  document.getElementById('form-login').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const pass = document.getElementById('admin-pass').value;
+    const msg = document.getElementById('login-msg');
+
+    if (pass === ADMIN_PASSWORD) {
+      isAdmin = true;
+      msg.className = 'msg';
+      msg.textContent = '';
+      document.getElementById('admin-login').hidden = true;
+      document.getElementById('admin-panel').hidden = false;
+      document.getElementById('admin-pass').value = '';
+      renderAdmin();
+    } else {
+      msg.className = 'msg error';
+      msg.textContent = 'Неверный пароль. Попробуйте ещё раз.';
+    }
+  });
+
+  function renderAdmin() {
+    if (!isAdmin) return;
+
+    document.getElementById('stat-total').textContent = cards.length;
+    document.getElementById('stat-offers').textContent = cards.filter(function (c) { return c.type === 'offer'; }).length;
+    document.getElementById('stat-requests').textContent = cards.filter(function (c) { return c.type === 'request'; }).length;
+
+    const list = document.getElementById('admin-list');
+    if (!cards.length) {
+      list.innerHTML = '<p class="empty">Объявлений пока нет.</p>';
+      return;
+    }
+    list.innerHTML = cards.map(function (c) {
+      return '<div class="admin-row">' +
+        '<div>' +
+          '<span class="badge ' + (c.type === 'offer' ? 'offer' : 'request') + '">' +
+            (c.type === 'offer' ? 'Предложение' : 'Просьба') +
+          '</span> ' +
+          '<span class="who">' + esc(c.title) + '</span>' +
+          '<div class="card-meta" style="margin-top:6px;">' +
+            esc(c.name) + ' · ' + esc(c.contact) +
+            ' · <span class="tag">' + esc(c.category) + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<button class="btn btn-danger btn-small" type="button" data-del="' + esc(c.id) + '">Удалить</button>' +
+      '</div>';
+    }).join('');
+  }
+
+  document.getElementById('admin-list').addEventListener('click', function (e) {
+    const btn = e.target.closest('[data-del]');
+    if (!btn) return;
+    if (!confirm('Удалить это объявление? Действие нельзя отменить.')) return;
+    cards = cards.filter(function (c) { return c.id !== btn.dataset.del; });
+    saveCards();
+    renderCards();
+    renderAdmin();
+  });
+
+  document.getElementById('form-admin-add').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    cards.unshift({
+      id: 'c' + Date.now() + Math.random().toString(16).slice(2, 6),
+      type: String(fd.get('type')),
+      title: String(fd.get('title') || '').trim(),
+      name: String(fd.get('name') || '').trim(),
+      contact: String(fd.get('contact') || '').trim(),
+      category: String(fd.get('category')),
+      desc: String(fd.get('desc') || '').trim()
+    });
+    saveCards();
+    renderCards();
+    renderAdmin();
+    e.target.reset();
+
+    const msg = document.getElementById('admin-add-msg');
+    msg.className = 'msg success';
+    msg.textContent = 'Объявление добавлено.';
+  });
+
+  document.getElementById('admin-reset').addEventListener('click', function () {
+    if (!confirm('Вернуть примеры объявлений? Все добавленные объявления будут удалены.')) return;
+    cards = DEFAULT_CARDS.slice();
+    saveCards();
+    renderCards();
+    renderAdmin();
+  });
+
+  document.getElementById('admin-logout').addEventListener('click', function () {
+    isAdmin = false;
+    document.getElementById('admin-panel').hidden = true;
+    document.getElementById('admin-login').hidden = false;
+    document.getElementById('login-msg').className = 'msg';
+    document.getElementById('login-msg').textContent = '';
+  });
+
+  /* ====================== СТАРТ ====================== */
+  renderCards();
+})();
+</script>
+</body>
+</html>
